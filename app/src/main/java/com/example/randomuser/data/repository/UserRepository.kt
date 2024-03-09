@@ -6,7 +6,6 @@ import com.example.randomuser.data.remote.response.Response
 import javax.inject.Inject
 
 class UserRepository @Inject constructor(private val userApi: UserApi){
-    //TODO - Change to flows in future
     suspend fun getUserList(): Result<Response> {
         val response = try {
             userApi.getUserList()

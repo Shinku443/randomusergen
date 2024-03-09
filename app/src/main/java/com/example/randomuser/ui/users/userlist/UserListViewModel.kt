@@ -12,7 +12,7 @@ import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
-class UserListScreenViewModel @Inject constructor(
+class UserListViewModel @Inject constructor(
     private val userRepository: UserRepository
 ) : ViewModel() {
     var userList =
@@ -24,7 +24,7 @@ class UserListScreenViewModel @Inject constructor(
         getUserList()
     }
 
-    private fun getUserList() {
+    public fun getUserList() {
         viewModelScope.launch {
             isLoading.value = true
 
