@@ -1,11 +1,13 @@
 package com.example.randomuser.ui.users.userlist
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -16,10 +18,13 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -37,6 +42,8 @@ fun UserListScreen(
     viewModel: UserListViewModel = hiltViewModel()
 ) {
     val listOfUsers by remember { viewModel.userList }
+    val isLoading by remember { viewModel.isLoading }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -45,64 +52,76 @@ fun UserListScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         val context = LocalContext.current
-        Column {
-            if (listOfUsers.isNotEmpty()) {
-                MainUser(navController, listOfUsers.first().id)
-            } else {
-                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-            }
-        }
-
-        if (listOfUsers.isNotEmpty()) {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp)
-                    .weight(1f),
-                contentPadding = PaddingValues(16.dp), userScrollEnabled = true
-            ) {
-                items(listOfUsers.drop(1)) {
-                    UserList(navController, it)
-                    Spacer(Modifier.height(16.dp))
+        if (isLoading) {
+            CircularProgressIndicator(
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.fillMaxSize()
+            )
+        } else {
+            Column {
+                if (listOfUsers.isNotEmpty()) {
+                    val firstUser = listOfUsers.first()
+                    MainUser(
+                        navController = navController,
+                        firstName = firstUser.name.first,
+                        lastName = firstUser.name.last,
+                        dob = firstUser.dob.date
+                    )
                 }
             }
-        }
 
-        Button(
-            modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-                .padding(
-                    horizontal = 20.dp,
-                    vertical = 20.dp
-                ),
-            onClick = {
-                viewModel.getUserList()
-            },
-        ) {
-            Text("Generate new user & list")
-        }
+            if (listOfUsers.isNotEmpty()) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp)
+                        .weight(1f),
+                    contentPadding = PaddingValues(16.dp), userScrollEnabled = true
+                ) {
+                    items(listOfUsers.drop(1)) {
+                        UserList(navController, it)
+                        Spacer(Modifier.height(16.dp))
+                    }
+                }
+            }
 
+            Button(
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(
+                        horizontal = 20.dp,
+                        vertical = 20.dp
+                    ),
+                onClick = {
+                    Timber.e("!!get user list")
+                    viewModel.getUserList()
+                },
+            ) {
+                Text("Generate new user & list")
+            }
+
+        }
     }
-
 }
 
 @Composable
 fun MainUser(
     navController: NavController,
-    id: Id,
+    firstName: String,
+    lastName: String,
+    dob: String,
     viewModel: UserListViewModel = hiltViewModel()
 ) {
-
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .background(Color.Cyan)
             .padding(horizontal = 12.dp)
-            .clickable { navController.navigate("detail_user_screen/${id.name}/${id.value}") },
+            .clickable { navController.navigate("detail_user_screen/${firstName}/${lastName}/${dob}") },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         for (user: User in viewModel.userList.value) {
-            Timber.e("user id:: ${user.id} and id:: $id")
-            if (user.id == id) {
+            if (user.name.first == firstName && user.name.last == lastName && dob == user.dob.date) {
                 Timber.e("we r gewd")
 
                 ProfilePicture(picture = user.picture)
@@ -125,7 +144,7 @@ fun UserList(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp)
-            .clickable { navController.navigate("detail_user_screen/${user.id.name}/${user.id.value}") },
+            .clickable { navController.navigate("detail_user_screen/${user.name.first}/${user.name.last}/${user.dob.date}") },
         verticalAlignment = Alignment.CenterVertically
     ) {
         ProfilePicture(user.picture)

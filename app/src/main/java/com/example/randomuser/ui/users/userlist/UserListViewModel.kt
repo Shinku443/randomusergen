@@ -1,6 +1,7 @@
 package com.example.randomuser.ui.users.userlist
 
 import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.randomuser.data.Result
@@ -13,18 +14,24 @@ import javax.inject.Inject
 
 @HiltViewModel
 class UserListViewModel @Inject constructor(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val state: SavedStateHandle
 ) : ViewModel() {
     var userList =
         mutableStateOf<List<User>>(listOf())
     var loadError = mutableStateOf("")
     var isLoading = mutableStateOf(false)
+    var firstLaunch = mutableStateOf(false)
 
     init {
-        getUserList()
+        Timber.e("keys:: ${state.keys()}")
+        if(state.keys().isEmpty()){
+            Timber.e("getting list init")
+            getUserList()
+        }
     }
-
-    public fun getUserList() {
+    fun getUserList() {
+        firstLaunch.value = true
         viewModelScope.launch {
             isLoading.value = true
 
@@ -33,7 +40,7 @@ class UserListViewModel @Inject constructor(
             when (result) {
                 is Result.Success -> {
                     val entries = result?.data?.results?.map { userItem ->
-                       User(
+                        User(
                             cell = userItem.cell,
                             dob = userItem.dob,
                             email = userItem.email,
@@ -52,6 +59,7 @@ class UserListViewModel @Inject constructor(
                     if (!entries.isNullOrEmpty()) {
                         loadError.value = ""
                         userList.value = entries
+                        Timber.e("Successful api call - no issues")
                     } else {
                         loadError.value = "Error loading user list :: isNullOrEmpty:: $entries"
                         Timber.e("Successful API call but issue mapping")
