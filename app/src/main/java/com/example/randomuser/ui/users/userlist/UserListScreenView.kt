@@ -1,13 +1,11 @@
 package com.example.randomuser.ui.users.userlist
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -18,20 +16,15 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
-import com.example.randomuser.data.remote.response.Id
 import com.example.randomuser.data.remote.response.Picture
 import com.example.randomuser.data.remote.response.User
 import timber.log.Timber
@@ -39,7 +32,7 @@ import timber.log.Timber
 @Composable
 fun UserListScreen(
     navController: NavController,
-    viewModel: UserListViewModel = hiltViewModel()
+    viewModel: UserListViewModel
 ) {
     val listOfUsers by remember { viewModel.userList }
     val isLoading by remember { viewModel.isLoading }
@@ -52,23 +45,31 @@ fun UserListScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         val context = LocalContext.current
-        if (isLoading) {
-            CircularProgressIndicator(
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.fillMaxSize()
-            )
-        } else {
-            Column {
-                if (listOfUsers.isNotEmpty()) {
-                    val firstUser = listOfUsers.first()
+
+        Column {
+            if (isLoading) {
+                CircularProgressIndicator(
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            } else {
+                if (viewModel.mainUser.value.isNotEmpty()) {
+                    val mainUser = viewModel.mainUser.value[0]
                     MainUser(
                         navController = navController,
-                        firstName = firstUser.name.first,
-                        lastName = firstUser.name.last,
-                        dob = firstUser.dob.date
+                        user = mainUser,
+                        viewModel = viewModel,
+                        onClick = {
+                            navController.navigate(
+                                "detail_user_screen/${mainUser.name.first}/${mainUser.name.last}/${mainUser.dob.date}"
+                            )
+                        }
                     )
+                } else {
+                    Text("Something went wrong on our end, try again!")
                 }
             }
+
 
             if (listOfUsers.isNotEmpty()) {
                 LazyColumn(
@@ -93,11 +94,10 @@ fun UserListScreen(
                         vertical = 20.dp
                     ),
                 onClick = {
-                    Timber.e("!!get user list")
-                    viewModel.getUserList()
+                    viewModel.getNewUser()
                 },
             ) {
-                Text("Generate new user & list")
+                Text("Generate new user")
             }
 
         }
@@ -107,33 +107,25 @@ fun UserListScreen(
 @Composable
 fun MainUser(
     navController: NavController,
-    firstName: String,
-    lastName: String,
-    dob: String,
-    viewModel: UserListViewModel = hiltViewModel()
+    user: User,
+    onClick: () -> Unit,
+    viewModel: UserListViewModel
 ) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.Cyan)
             .padding(horizontal = 12.dp)
-            .clickable { navController.navigate("detail_user_screen/${firstName}/${lastName}/${dob}") },
+            .clickable { onClick() },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        for (user: User in viewModel.userList.value) {
-            if (user.name.first == firstName && user.name.last == lastName && dob == user.dob.date) {
-                Timber.e("we r gewd")
-
-                ProfilePicture(picture = user.picture)
-                Text(user.name.last + ", " + user.name.first)
-                Text(user.email)
-                Text(user.phone)
-                Text(user.location.city + ", " + user.location.state)
-            }
-        }
+        ProfilePicture(picture = user.picture)
+        Text(user.name.last + ", " + user.name.first)
+        Text(user.email)
+        Text(user.phone)
+        Text(user.location.city + ", " + user.location.state)
     }
-
 }
+
 
 @Composable
 fun UserList(

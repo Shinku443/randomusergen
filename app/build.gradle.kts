@@ -92,4 +92,16 @@ dependencies {
     implementation("com.jakewharton.timber:timber:5.0.1")
 
 
+    //Jupiter for testing (Junit5)
+    testImplementation("org.junit.jupiter:junit-jupiter:5.8.2")
+
+    //Mockito
+    testImplementation ("org.mockito.kotlin:mockito-kotlin:4.0.0")
+    testImplementation("org.mockito:mockito-inline:2.8.47")
+    testImplementation ("io.mockk:mockk:1.13.10")
+    androidTestImplementation("junit:junit:4.13.2")
+    androidTestImplementation("org.mockito:mockito-core:4.0.0")
+
+    androidTestImplementation ("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.10")
+    testImplementation ("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6")
 }

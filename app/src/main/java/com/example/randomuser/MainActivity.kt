@@ -24,8 +24,10 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-         val viewModel: UserListViewModel by viewModels()
+        val viewModel: UserListViewModel by viewModels()
+        viewModel.getNewUser()
         viewModel.getUserList()
+
         setContent {
             RandomUserTheme {
                 // A surface container using the 'background' color from the theme
@@ -34,12 +36,13 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val navController = rememberNavController()
+                    val viewModel: UserListViewModel = hiltViewModel()
                     NavHost(
                         navController = navController,
                         startDestination = "main_user_list_screen"
                     ) {
                         composable("main_user_list_screen") {
-                            UserListScreen(navController = navController)
+                            UserListScreen(navController = navController, viewModel = viewModel)
                         }
 
                         composable("detail_user_screen/{firstName}/{lastName}/{dobDate}",
@@ -58,12 +61,12 @@ class MainActivity : ComponentActivity() {
                             val firstName = it.arguments?.getString("firstName")
                             val lastName = it.arguments?.getString("lastName")
                             val dobDate = it.arguments?.getString("dobDate")
-
                             UserDetailsScreen(
                                 navController = navController,
                                 firstName = firstName ?: "test",
                                 lastName = lastName ?: "test",
                                 dob = dobDate ?: "",
+                                viewModel = viewModel
                             )
 
                         }

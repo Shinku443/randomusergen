@@ -9,4 +9,7 @@ import retrofit2.http.GET
 interface UserApi {
     @GET("api/?results=10")
     suspend fun getUserList(): Response
+
+    @GET("api")
+    suspend fun getUser(): Response
 }

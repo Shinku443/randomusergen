@@ -14,4 +14,13 @@ class UserRepository @Inject constructor(private val userApi: UserApi){
         }
         return Result.Success(response)
     }
+
+    suspend fun getNewUser(): Result<Response> {
+        val response = try {
+            userApi.getUser()
+        } catch (e: Exception){
+            return Result.Error("Error when attempting to get user list: $e")
+        }
+        return Result.Success(response)
+    }
 }
